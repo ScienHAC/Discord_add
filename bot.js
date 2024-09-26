@@ -109,18 +109,12 @@ const client = new Client({
 const commands = [
   {
     name: 'add-user',
-    description: 'Add a user to a specific channel',
+    description: 'Add a user to all channels',
     options: [
       {
         type: 6, // USER type (user ID)
         name: 'usr',
         description: 'The user to add',
-        required: true,
-      },
-      {
-        type: 7, // CHANNEL type (channel ID)
-        name: 'channel',
-        description: 'The channel to add the user to',
         required: true,
       },
     ],
@@ -172,44 +166,45 @@ client.on('interactionCreate', async (interaction) => {
   if (commandName === 'add-user') {
     // Get the user option from the command
     const user = interaction.options.getUser('usr');
-    // Get the channel option from the command
-    const channel = interaction.options.getChannel('channel');
-
-    // Check if the channel is valid (it should exist)
-    if (!channel) {
-      await interaction.reply('Please provide a valid channel.');
-      return;
-    }
+    const guild = interaction.guild; // Get the guild (server)
 
     try {
-      // Add the user to the specified channel by editing permissions
-      if (channel.isTextBased()) {
-        await channel.permissionOverwrites.edit(user, {
-          VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
-          SEND_MESSAGES: PermissionsBitField.Flags.SendMessages,
-        });
-      } else if (channel.isVoiceBased()) {
-        await channel.permissionOverwrites.edit(user, {
-          VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
-          CONNECT: PermissionsBitField.Flags.Connect,
-          REQUEST_TO_SPEAK: PermissionsBitField.Flags.RequestToSpeak,
-        });
-      } else if (channel.type === 15) { // Forum channels
-        await channel.permissionOverwrites.edit(user, {
-          VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
-          SEND_MESSAGES_IN_THREADS: PermissionsBitField.Flags.SendMessagesInThreads,
-        });
-      } else {
-        await channel.permissionOverwrites.edit(user, {
-          VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
-        });
+      // Fetch all channels in the guild
+      const channels = await guild.channels.fetch();
+
+      // Iterate over all channels and grant permission to the user
+      for (const [channelId, channel] of channels) {
+        if (channel.isTextBased()) {
+          // For text-based channels (including forums, announcements), grant VIEW_CHANNEL and SEND_MESSAGES
+          await channel.permissionOverwrites.edit(user, {
+            VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
+            SEND_MESSAGES: PermissionsBitField.Flags.SendMessages,
+          });
+        } else if (channel.isVoiceBased()) {
+          // For voice-based channels (including stage), grant VIEW_CHANNEL and CONNECT
+          await channel.permissionOverwrites.edit(user, {
+            VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
+            CONNECT: PermissionsBitField.Flags.Connect,
+            REQUEST_TO_SPEAK: PermissionsBitField.Flags.RequestToSpeak, // Optional for stage channels
+          });
+        } else if (channel.type === 15) { // Forum channels
+          await channel.permissionOverwrites.edit(user, {
+            VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
+            SEND_MESSAGES_IN_THREADS: PermissionsBitField.Flags.SendMessagesInThreads,
+          });
+        } else {
+          // For any other channels or categories, just grant VIEW_CHANNEL
+          await channel.permissionOverwrites.edit(user, {
+            VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
+          });
+        }
       }
 
       // Confirm the action in the reply
-      await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully added to channel: ${channel.name} (ID: ${channel.id}).`);
+      await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully added to all channels.`);
     } catch (error) {
-      console.error('Error adding user to channel:', error);
-      await interaction.reply('There was an error while trying to add the user to the channel.');
+      console.error('Error adding user to all channels:', error);
+      await interaction.reply('There was an error while trying to add the user to all channels.');
     }
   } else if (commandName === 'remove-user') {
     // Get the user option from the command
@@ -238,5 +233,3 @@ client.on('interactionCreate', async (interaction) => {
 
 // Login to Discord with your bot's token
 client.login(TOKEN);
-
-
