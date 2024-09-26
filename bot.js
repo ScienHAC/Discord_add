@@ -157,18 +157,30 @@ client.on('interactionCreate', async (interaction) => {
     // Get the user option from the command
     const user = interaction.options.getUser('usr');
     // Get the channel option from the command
-    const channel = interaction.options.getChannel('channel'); // Use getChannel() to fetch the channel object
+    const channel = interaction.options.getChannel('channel');
 
-    // Check if the channel is a text channel
-    if (!channel || !channel.isText()) {
-      await interaction.reply('Please provide a valid text channel.');
+    // Check if the channel is text-based
+    if (!channel || !channel.isTextBased()) {
+      await interaction.reply('Please provide a valid text-based channel.');
       return;
     }
 
-    // Reply with the user's name and the channel name
-    await interaction.reply(`You mentioned user: ${user.tag} (ID: ${user.id}) for channel: ${channel.name} (ID: ${channel.id})`);
+    try {
+      // Add the user to the specified channel by editing permissions
+      await channel.permissionOverwrites.edit(user, {
+        VIEW_CHANNEL: true, // Grant the user permission to view the channel
+        SEND_MESSAGES: true, // Optionally allow the user to send messages
+      });
+
+      // Confirm the action in the reply
+      await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully added to channel: ${channel.name} (ID: ${channel.id}).`);
+    } catch (error) {
+      console.error('Error adding user to channel:', error);
+      await interaction.reply('There was an error while trying to add the user to the channel.');
+    }
   }
 });
+
 
 // Login to Discord with your bot's token
 client.login(TOKEN);
