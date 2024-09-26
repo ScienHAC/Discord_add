@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits } = require('discord.js');
+/*const { Client, GatewayIntentBits } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const TOKEN = process.env.TOKEN;
@@ -87,7 +87,78 @@ client.on('interactionCreate', async (interaction) => {
       await interaction.reply('There was an error while trying to add the user.');
     }
   }
+});*/
+const { Client, GatewayIntentBits } = require('discord.js');
+const { REST } = require('@discordjs/rest');
+const { Routes } = require('discord-api-types/v9');
+const TOKEN = process.env.TOKEN;
+const CLIENT_ID = process.env.CLIENT_ID;
+
+// Create a new client instance
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions,
+  ],
 });
+
+// Register the slash command globally
+const commands = [
+  {
+    name: 'add-user',
+    description: 'Add a user to private and public channels',
+    options: [
+      {
+        type: 6, // USER type (user ID)
+        name: 'usr',
+        description: 'The user to add',
+        required: true,
+      },
+    ],
+  },
+];
+
+const rest = new REST({ version: '9' }).setToken(TOKEN);
+
+// Register the slash command globally
+(async () => {
+  try {
+    console.log('Started refreshing application (/) commands.');
+    await rest.put(
+      Routes.applicationCommands(CLIENT_ID),
+      { body: commands },
+    );
+    console.log('Successfully reloaded application (/) commands.');
+  } catch (error) {
+    console.error('Error registering commands:', error);
+  }
+})();
+
+// When the bot is ready
+client.once('ready', () => {
+  console.log(`Logged in as ${client.user.tag}!`);
+});
+
+// Command handling
+client.on('interactionCreate', async (interaction) => {
+  if (!interaction.isCommand()) return;
+
+  const { commandName } = interaction;
+
+  if (commandName === 'add-user') {
+    // Get the user option from the command
+    const user = interaction.options.getUser('usr');
+
+    // Reply with the user's name
+    await interaction.reply(`You mentioned user: ${user.tag} (ID: ${user.id})`);
+  }
+});
+
+// Login to Discord with your bot's token
+client.login(TOKEN);
+
 
 
 // Login to Discord with your bot's token
