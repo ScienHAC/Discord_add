@@ -59,30 +59,36 @@ client.on('interactionCreate', async (interaction) => {
 
   if (commandName === 'add-user') {
     const user = interaction.options.getUser('usr');
-    const guild = interaction.guild; // This detects the guild (server) automatically
+    const guild = interaction.guild;
 
-    // Fetch all channels in the guild (server)
+    // Fetch all channels in the guild
     const channels = await guild.channels.fetch();
 
     try {
       // Add the user to all available text channels
       for (const [channelId, channel] of channels) {
         if (channel.isTextBased()) {
-          await channel.permissionOverwrites.edit(user, {
-            VIEW_CHANNEL: true, // Grant the user permission to view the channel
-          });
-          console.log(`Added ${user.tag} to channel ${channel.name}`);
+          // Ensure the channel is manageable
+          if (channel.permissionsFor(guild.me).has('MANAGE_CHANNELS')) {
+            await channel.permissionOverwrites.edit(user, {
+              VIEW_CHANNEL: true,
+            });
+            console.log(`Added ${user.tag} to channel ${channel.name}`);
+          } else {
+            console.log(`Bot lacks permission to edit channel: ${channel.name}`);
+          }
         }
       }
 
       // Respond to the interaction that the user was added
       await interaction.reply(`User ${user.tag} added to all text channels.`);
     } catch (error) {
-      console.error(error);
+      console.error('Error adding user to channels:', error);
       await interaction.reply('There was an error while trying to add the user.');
     }
   }
 });
+
 
 // Login to Discord with your bot's token
 client.login(TOKEN);
