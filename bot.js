@@ -80,48 +80,38 @@ client.on('interactionCreate', async (interaction) => {
   const { commandName } = interaction;
 
   if (commandName === 'add-user') {
-    // Get the user option from the command
     const user = interaction.options.getUser('usr');
-    // Get the channel option from the command
     const channel = interaction.options.getChannel('channel');
 
-    // Check if the channel is valid (it should exist)
     if (!channel) {
-      await interaction.reply('Please provide a valid channel.');
-      return;
+        await interaction.reply('Please provide a valid channel.');
+        return;
     }
 
     try {
-      // Add the user to the specified channel by editing permissions
-      if (channel.isTextBased()) {
-        await channel.permissionOverwrites.edit(user, {
-          VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
-          SEND_MESSAGES: PermissionsBitField.Flags.SendMessages,
-        });
-      } else if (channel.isVoiceBased()) {
-        await channel.permissionOverwrites.edit(user, {
-          VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
-          CONNECT: PermissionsBitField.Flags.Connect,
-          REQUEST_TO_SPEAK: PermissionsBitField.Flags.RequestToSpeak,
-        });
-      } else if (channel.type === 15) { // Forum channels
-        await channel.permissionOverwrites.edit(user, {
-          VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
-          SEND_MESSAGES_IN_THREADS: PermissionsBitField.Flags.SendMessagesInThreads,
-        });
-      } else {
-        await channel.permissionOverwrites.edit(user, {
-          VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
-        });
-      }
+        const permissionsToAdd = {
+            VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
+        };
 
-      // Confirm the action in the reply
-      await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully added to channel: ${channel.name} (ID: ${channel.id}).`);
+        // Set additional permissions based on channel type
+        if (channel.isTextBased()) {
+            permissionsToAdd[SEND_MESSAGES] = PermissionsBitField.Flags.SendMessages;
+        } else if (channel.isVoiceBased()) {
+            permissionsToAdd[CONNECT] = PermissionsBitField.Flags.Connect;
+            permissionsToAdd[REQUEST_TO_SPEAK] = PermissionsBitField.Flags.RequestToSpeak;
+        } else if (channel.type === 15) { // Forum channels
+            permissionsToAdd[SEND_MESSAGES_IN_THREADS] = PermissionsBitField.Flags.SendMessagesInThreads;
+        }
+
+        // Attempt to add user to the channel
+        await channel.permissionOverwrites.edit(user, permissionsToAdd);
+
+        await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully added to channel: ${channel.name} (ID: ${channel.id}).`);
     } catch (error) {
-      console.error('Error adding user to channel:', error);
-      await interaction.reply('There was an error while trying to add the user to the channel.');
+        console.error('Error adding user to channel:', error);
+        await interaction.reply('There was an error while trying to add the user to the channel. Please check the bot permissions and user roles.');
     }
-  } else if (commandName === 'remove-user') {
+} else if (commandName === 'remove-user') {
     // Get the user option from the command
     const user = interaction.options.getUser('usr');
     // Get the channel option from the command
