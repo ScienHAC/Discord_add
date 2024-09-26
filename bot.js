@@ -88,10 +88,18 @@ client.on('interactionCreate', async (interaction) => {
 
       for (const [channelId, channel] of channels) {
         try {
-          if (!channel.permissionsFor(guild.me).has(PermissionsBitField.Flags.ManageChannels)) {
+          // Ensure channel is valid and check if bot has manage permissions
+          if (!channel || !channel.permissionsFor) {
             failureCount++;
-            failureReasons.push(`Bot lacks permission to manage channel: ${channel.name}`);
-            continue; // Skip channels where bot can't manage permissions
+            failureReasons.push(`Invalid channel: ${channelId}`);
+            continue; // Skip invalid channels
+          }
+
+          const botPermissions = channel.permissionsFor(guild.me);
+          if (!botPermissions || !botPermissions.has(PermissionsBitField.Flags.ManageRoles)) {
+            failureCount++;
+            failureReasons.push(`Bot lacks permission to manage roles in channel: ${channel.name}`);
+            continue;
           }
 
           if (channel.isTextBased()) {
@@ -111,9 +119,9 @@ client.on('interactionCreate', async (interaction) => {
               SEND_MESSAGES_IN_THREADS: PermissionsBitField.Flags.SendMessagesInThreads,
             });
           } else {
-            await channel.permissionOverwrites.edit(user, {
-              VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
-            });
+            failureCount++;
+            failureReasons.push(`Unsupported channel type for: ${channel.name}`);
+            continue; // Skip unsupported channels
           }
 
           successCount++;
@@ -123,7 +131,6 @@ client.on('interactionCreate', async (interaction) => {
         }
       }
 
-      // If too many failures, limit the message size
       const failureMessage = failureReasons.slice(0, 10).join('\n'); // Show only the first 10 failures
       const remainingFailures = failureCount > 10 ? `\n...and ${failureCount - 10} more failures.` : '';
 
