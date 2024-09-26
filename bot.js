@@ -148,6 +148,8 @@ client.once('ready', () => {
 });
 
 // Command handling
+const { PermissionsBitField } = require('discord.js');
+
 client.on('interactionCreate', async (interaction) => {
   if (!interaction.isCommand()) return;
 
@@ -159,17 +161,17 @@ client.on('interactionCreate', async (interaction) => {
     // Get the channel option from the command
     const channel = interaction.options.getChannel('channel');
 
-    // Check if the channel is text-based
+    // Check if the channel is a text-based channel
     if (!channel || !channel.isTextBased()) {
-      await interaction.reply('Please provide a valid text-based channel.');
+      await interaction.reply('Please provide a valid text channel.');
       return;
     }
 
     try {
       // Add the user to the specified channel by editing permissions
       await channel.permissionOverwrites.edit(user, {
-        VIEW_CHANNEL: true, 
-        SEND_MESSAGES: true, 
+        VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,  // Use PermissionsBitField.Flags
+        SEND_MESSAGES: PermissionsBitField.Flags.SendMessages, // Use PermissionsBitField.Flags
       });
 
       // Confirm the action in the reply
@@ -180,6 +182,7 @@ client.on('interactionCreate', async (interaction) => {
     }
   }
 });
+
 
 
 // Login to Discord with your bot's token
