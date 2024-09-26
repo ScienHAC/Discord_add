@@ -91,6 +91,7 @@ client.on('interactionCreate', async (interaction) => {
 const { Client, GatewayIntentBits } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
+const { PermissionsBitField } = require('discord.js');
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
 
@@ -104,7 +105,7 @@ const client = new Client({
   ],
 });
 
-// Register the slash command globally
+// Register the slash commands globally
 const commands = [
   {
     name: 'add-user',
@@ -124,18 +125,33 @@ const commands = [
       },
     ],
   },
+  {
+    name: 'remove-user',
+    description: 'Remove a user from a specific channel',
+    options: [
+      {
+        type: 6, // USER type (user ID)
+        name: 'usr',
+        description: 'The user to remove',
+        required: true,
+      },
+      {
+        type: 7, // CHANNEL type (channel ID)
+        name: 'channel',
+        description: 'The channel to remove the user from',
+        required: true,
+      },
+    ],
+  },
 ];
 
 const rest = new REST({ version: '9' }).setToken(TOKEN);
 
-// Register the slash command globally
+// Register the slash commands globally
 (async () => {
   try {
     console.log('Started refreshing application (/) commands.');
-    await rest.put(
-      Routes.applicationCommands(CLIENT_ID),
-      { body: commands },
-    );
+    await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
     console.log('Successfully reloaded application (/) commands.');
   } catch (error) {
     console.error('Error registering commands:', error);
@@ -148,8 +164,6 @@ client.once('ready', () => {
 });
 
 // Command handling
-const { PermissionsBitField } = require('discord.js');
-
 client.on('interactionCreate', async (interaction) => {
   if (!interaction.isCommand()) return;
 
@@ -169,29 +183,23 @@ client.on('interactionCreate', async (interaction) => {
 
     try {
       // Add the user to the specified channel by editing permissions
-      // Adjust permissions for different types of channels
       if (channel.isTextBased()) {
-        // For text-based channels (including forums, announcements), grant VIEW_CHANNEL and SEND_MESSAGES
         await channel.permissionOverwrites.edit(user, {
           VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
           SEND_MESSAGES: PermissionsBitField.Flags.SendMessages,
         });
       } else if (channel.isVoiceBased()) {
-        // For voice-based channels (including stage), grant VIEW_CHANNEL and CONNECT
         await channel.permissionOverwrites.edit(user, {
           VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
           CONNECT: PermissionsBitField.Flags.Connect,
-          // Optional for stage channels, grant REQUEST_TO_SPEAK if desired
           REQUEST_TO_SPEAK: PermissionsBitField.Flags.RequestToSpeak,
         });
-      } else if (channel.type === 15) { // 15 is for forum channels in discord.js v14
-        // For forum channels, grant VIEW_CHANNEL and SEND_MESSAGES_IN_THREADS
+      } else if (channel.type === 15) { // Forum channels
         await channel.permissionOverwrites.edit(user, {
           VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
           SEND_MESSAGES_IN_THREADS: PermissionsBitField.Flags.SendMessagesInThreads,
         });
       } else {
-        // For any other channels or categories, just grant VIEW_CHANNEL
         await channel.permissionOverwrites.edit(user, {
           VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
         });
@@ -203,12 +211,32 @@ client.on('interactionCreate', async (interaction) => {
       console.error('Error adding user to channel:', error);
       await interaction.reply('There was an error while trying to add the user to the channel.');
     }
+  } else if (commandName === 'remove-user') {
+    // Get the user option from the command
+    const user = interaction.options.getUser('usr');
+    // Get the channel option from the command
+    const channel = interaction.options.getChannel('channel');
+
+    // Check if the channel is valid (it should exist)
+    if (!channel) {
+      await interaction.reply('Please provide a valid channel.');
+      return;
+    }
+
+    try {
+      // Remove the user from the specified channel by resetting their permissions
+      await channel.permissionOverwrites.delete(user);
+
+      // Confirm the action in the reply
+      await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully removed from channel: ${channel.name} (ID: ${channel.id}).`);
+    } catch (error) {
+      console.error('Error removing user from channel:', error);
+      await interaction.reply('There was an error while trying to remove the user from the channel.');
+    }
   }
 });
 
-
-
-
 // Login to Discord with your bot's token
 client.login(TOKEN);
+
 
