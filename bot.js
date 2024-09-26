@@ -164,68 +164,71 @@ client.on('interactionCreate', async (interaction) => {
   const { commandName } = interaction;
 
   if (commandName === 'add-user') {
-    // Get the user option from the command
     const user = interaction.options.getUser('usr');
-    const guild = interaction.guild; // Get the guild (server)
+    const guild = interaction.guild;
 
-    // Defer the reply to let Discord know we're working on it
     await interaction.deferReply();
 
     try {
-      // Fetch all channels in the guild
       const channels = await guild.channels.fetch();
 
-      // Iterate over all channels and grant permission to the user
+      let successCount = 0;
+      let failureCount = 0;
+      let failureReasons = [];
+
       for (const [channelId, channel] of channels) {
-        if (channel.isTextBased()) {
-          // For text-based channels (including forums, announcements), grant VIEW_CHANNEL and SEND_MESSAGES
-          await channel.permissionOverwrites.edit(user, {
-            VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
-            SEND_MESSAGES: PermissionsBitField.Flags.SendMessages,
-          });
-        } else if (channel.isVoiceBased()) {
-          // For voice-based channels (including stage), grant VIEW_CHANNEL and CONNECT
-          await channel.permissionOverwrites.edit(user, {
-            VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
-            CONNECT: PermissionsBitField.Flags.Connect,
-            REQUEST_TO_SPEAK: PermissionsBitField.Flags.RequestToSpeak, // Optional for stage channels
-          });
-        } else if (channel.type === 15) { // Forum channels
-          await channel.permissionOverwrites.edit(user, {
-            VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
-            SEND_MESSAGES_IN_THREADS: PermissionsBitField.Flags.SendMessagesInThreads,
-          });
-        } else {
-          // For any other channels or categories, just grant VIEW_CHANNEL
-          await channel.permissionOverwrites.edit(user, {
-            VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
-          });
+        try {
+          if (!channel.permissionsFor(guild.me).has(PermissionsBitField.Flags.ManageChannels)) {
+            failureCount++;
+            failureReasons.push(`Bot lacks permission to manage channel: ${channel.name}`);
+            continue; // Skip channels where bot can't manage permissions
+          }
+
+          if (channel.isTextBased()) {
+            await channel.permissionOverwrites.edit(user, {
+              VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
+              SEND_MESSAGES: PermissionsBitField.Flags.SendMessages,
+            });
+          } else if (channel.isVoiceBased()) {
+            await channel.permissionOverwrites.edit(user, {
+              VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
+              CONNECT: PermissionsBitField.Flags.Connect,
+              REQUEST_TO_SPEAK: PermissionsBitField.Flags.RequestToSpeak,
+            });
+          } else if (channel.type === 15) { // Forum channels
+            await channel.permissionOverwrites.edit(user, {
+              VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
+              SEND_MESSAGES_IN_THREADS: PermissionsBitField.Flags.SendMessagesInThreads,
+            });
+          } else {
+            await channel.permissionOverwrites.edit(user, {
+              VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
+            });
+          }
+
+          successCount++;
+        } catch (error) {
+          failureCount++;
+          failureReasons.push(`Failed in channel ${channel.name}: ${error.message}`);
         }
       }
 
-      // Confirm the action in the reply
-      await interaction.followUp(`User ${user.tag} (ID: ${user.id}) has been successfully added to all channels.`);
+      await interaction.followUp(`User ${user.tag} (ID: ${user.id}) has been added to ${successCount} channels.\n${failureCount > 0 ? `${failureCount} failures:\n${failureReasons.join('\n')}` : ''}`);
     } catch (error) {
       console.error('Error adding user to all channels:', error);
       await interaction.followUp('There was an error while trying to add the user to all channels.');
     }
   } else if (commandName === 'remove-user') {
-    // Get the user option from the command
     const user = interaction.options.getUser('usr');
-    // Get the channel option from the command
     const channel = interaction.options.getChannel('channel');
 
-    // Check if the channel is valid (it should exist)
     if (!channel) {
       await interaction.reply('Please provide a valid channel.');
       return;
     }
 
     try {
-      // Remove the user from the specified channel by resetting their permissions
       await channel.permissionOverwrites.delete(user);
-
-      // Confirm the action in the reply
       await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully removed from channel: ${channel.name} (ID: ${channel.id}).`);
     } catch (error) {
       console.error('Error removing user from channel:', error);
@@ -236,4 +239,5 @@ client.on('interactionCreate', async (interaction) => {
 
 // Login to Discord with your bot's token
 client.login(TOKEN);
+
 
