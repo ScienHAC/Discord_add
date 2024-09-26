@@ -79,76 +79,72 @@ client.on('interactionCreate', async (interaction) => {
 
   const { commandName } = interaction;
 
- if (commandName === 'add-user') {
+  if (commandName === 'add-user') {
     const user = interaction.options.getUser('usr');
     const channel = interaction.options.getChannel('channel');
 
-    if (!channel) {
-        await interaction.reply('Please provide a valid channel.');
-        return;
-    }
-
-    try {
-        // Define the role name and permissions
-        const roleName = `TempRoleForUser_${user.username}`;
-        const permissions = [
-            PermissionsBitField.Flags.ViewChannel,
-            PermissionsBitField.Flags.SendMessages,
-            PermissionsBitField.Flags.Connect,
-            PermissionsBitField.Flags.RequestToSpeak,
-        ];
-
-        // Check if the role already exists
-        let role = interaction.guild.roles.cache.find(r => r.name === roleName);
-
-        if (!role) {
-            // Create a new role
-            role = await interaction.guild.roles.create({
-                name: roleName,
-                permissions: permissions,
-                reason: `Temporary role for ${user.tag} to access ${channel.name}`,
-            });
-        }
-
-        // Add the role to the user
-        const member = await interaction.guild.members.fetch(user.id);
-        await member.roles.add(role);
-
-        // Set channel permissions for the role
-        await channel.permissionOverwrites.edit(role, {
-            VIEW_CHANNEL: true,
-            SEND_MESSAGES: true,
-            CONNECT: true,
-            REQUEST_TO_SPEAK: true,
-        });
-
-        // Confirm the action in the reply
-        await interaction.reply(`User ${user.tag} has been successfully added to channel: ${channel.name}.`);
-    } catch (error) {
-        console.error('Error adding user to channel:', error);
-        await interaction.reply('There was an error while trying to add the user to the channel. Please check the bot permissions and user roles.');
-    }
-} else if (commandName === 'remove-user') {
-    // Get the user option from the command
-    const user = interaction.options.getUser('usr');
-    // Get the channel option from the command
-    const channel = interaction.options.getChannel('channel');
-
-    // Check if the channel is valid (it should exist)
-    if (!channel) {
-      await interaction.reply('Please provide a valid channel.');
+    if (!channel || !user) {
+      await interaction.reply('Please provide a valid user and channel.');
       return;
     }
 
     try {
-      // Remove the user from the specified channel by resetting their permissions
-      await channel.permissionOverwrites.delete(user);
+      // Create a temporary role with necessary permissions
+      const roleName = `TempRoleForUser_${user.id}`;
+      let role = interaction.guild.roles.cache.find(r => r.name === roleName);
 
-      // Confirm the action in the reply
-      await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully removed from channel: ${channel.name} (ID: ${channel.id}).`);
+      if (!role) {
+        role = await interaction.guild.roles.create({
+          name: roleName,
+          permissions: [
+            PermissionsBitField.Flags.ViewChannel,
+            PermissionsBitField.Flags.SendMessages,
+            PermissionsBitField.Flags.Connect,
+            PermissionsBitField.Flags.RequestToSpeak,
+          ],
+          reason: `Temporary role for ${user.tag} to access ${channel.name}`,
+        });
+      }
+
+      // Fetch the member and add the role
+      const member = await interaction.guild.members.fetch(user.id);
+      await member.roles.add(role);
+      await channel.permissionOverwrites.edit(role, {
+        VIEW_CHANNEL: true,
+        SEND_MESSAGES: true,
+        CONNECT: true,
+        REQUEST_TO_SPEAK: true,
+      });
+
+      await interaction.reply(`User ${user.tag} has been successfully added to channel: ${channel.name}.`);
+    } catch (error) {
+      console.error('Error adding user to channel:', error);
+      await interaction.reply('There was an error while trying to add the user to the channel. Please check the bot permissions and user roles.');
+    }
+  } else if (commandName === 'remove-user') {
+    const user = interaction.options.getUser('usr');
+    const channel = interaction.options.getChannel('channel');
+
+    if (!channel || !user) {
+      await interaction.reply('Please provide a valid user and channel.');
+      return;
+    }
+
+    try {
+      const member = await interaction.guild.members.fetch(user.id);
+      const roleName = `TempRoleForUser_${user.id}`;
+      const role = interaction.guild.roles.cache.find(r => r.name === roleName);
+
+      if (role) {
+        await member.roles.remove(role);
+      }
+
+      await channel.permissionOverwrites.delete(role);
+
+      await interaction.reply(`User ${user.tag} has been successfully removed from channel: ${channel.name}.`);
     } catch (error) {
       console.error('Error removing user from channel:', error);
-      await interaction.reply('There was an error while trying to remove the user from the channel.');
+      await interaction.reply('There was an error while trying to remove the user from the channel. Please check the bot permissions and user roles.');
     }
   }
 });
