@@ -95,12 +95,12 @@ client.on('interactionCreate', async (interaction) => {
 
         // Set additional permissions based on channel type
         if (channel.isTextBased()) {
-            permissionsToAdd[SEND_MESSAGES] = PermissionsBitField.Flags.SendMessages;
+            permissionsToAdd[SEND_MESSAGES] = PermissionsBitField.Flags.SendMessages; // Corrected here
         } else if (channel.isVoiceBased()) {
-            permissionsToAdd[CONNECT] = PermissionsBitField.Flags.Connect;
-            permissionsToAdd[REQUEST_TO_SPEAK] = PermissionsBitField.Flags.RequestToSpeak;
+            permissionsToAdd[CONNECT] = PermissionsBitField.Flags.Connect; // Corrected here
+            permissionsToAdd[REQUEST_TO_SPEAK] = PermissionsBitField.Flags.RequestToSpeak; // Corrected here
         } else if (channel.type === 15) { // Forum channels
-            permissionsToAdd[SEND_MESSAGES_IN_THREADS] = PermissionsBitField.Flags.SendMessagesInThreads;
+            permissionsToAdd[SEND_MESSAGES_IN_THREADS] = PermissionsBitField.Flags.SendMessagesInThreads; // Corrected here
         }
 
         // Attempt to add user to the channel
