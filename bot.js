@@ -168,8 +168,8 @@ client.on('interactionCreate', async (interaction) => {
     try {
       // Add the user to the specified channel by editing permissions
       await channel.permissionOverwrites.edit(user, {
-        VIEW_CHANNEL: true, // Grant the user permission to view the channel
-        SEND_MESSAGES: true, // Optionally allow the user to send messages
+        VIEW_CHANNEL: true, 
+        SEND_MESSAGES: true, 
       });
 
       // Confirm the action in the reply
