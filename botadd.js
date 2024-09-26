@@ -1,8 +1,8 @@
 const { Client, GatewayIntentBits } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-const TOKEN = 'YOUR_BOT_TOKEN';
-const CLIENT_ID = 'YOUR_CLIENT_ID'; // Client ID from the Developer Portal
+const TOKEN = process.env.TOKEN;
+const CLIENT_ID = process.env.CLIENT_ID; // Client ID from the Developer Portal
 
 // Create a new client instance
 const client = new Client({
