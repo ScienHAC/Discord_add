@@ -79,7 +79,7 @@ client.on('interactionCreate', async (interaction) => {
 
   const { commandName } = interaction;
 
-  if (commandName === 'add-user') {
+ if (commandName === 'add-user') {
     const user = interaction.options.getUser('usr');
     const channel = interaction.options.getChannel('channel');
 
@@ -89,24 +89,41 @@ client.on('interactionCreate', async (interaction) => {
     }
 
     try {
-        const permissionsToAdd = {
-            VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
-        };
+        // Define the role name and permissions
+        const roleName = `TempRoleForUser_${user.username}`;
+        const permissions = [
+            PermissionsBitField.Flags.ViewChannel,
+            PermissionsBitField.Flags.SendMessages,
+            PermissionsBitField.Flags.Connect,
+            PermissionsBitField.Flags.RequestToSpeak,
+        ];
 
-        // Set additional permissions based on channel type
-        if (channel.isTextBased()) {
-            permissionsToAdd[SEND_MESSAGES] = PermissionsBitField.Flags.SendMessages; // Corrected here
-        } else if (channel.isVoiceBased()) {
-            permissionsToAdd[CONNECT] = PermissionsBitField.Flags.Connect; // Corrected here
-            permissionsToAdd[REQUEST_TO_SPEAK] = PermissionsBitField.Flags.RequestToSpeak; // Corrected here
-        } else if (channel.type === 15) { // Forum channels
-            permissionsToAdd[SEND_MESSAGES_IN_THREADS] = PermissionsBitField.Flags.SendMessagesInThreads; // Corrected here
+        // Check if the role already exists
+        let role = interaction.guild.roles.cache.find(r => r.name === roleName);
+
+        if (!role) {
+            // Create a new role
+            role = await interaction.guild.roles.create({
+                name: roleName,
+                permissions: permissions,
+                reason: `Temporary role for ${user.tag} to access ${channel.name}`,
+            });
         }
 
-        // Attempt to add user to the channel
-        await channel.permissionOverwrites.edit(user, permissionsToAdd);
+        // Add the role to the user
+        const member = await interaction.guild.members.fetch(user.id);
+        await member.roles.add(role);
 
-        await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully added to channel: ${channel.name} (ID: ${channel.id}).`);
+        // Set channel permissions for the role
+        await channel.permissionOverwrites.edit(role, {
+            VIEW_CHANNEL: true,
+            SEND_MESSAGES: true,
+            CONNECT: true,
+            REQUEST_TO_SPEAK: true,
+        });
+
+        // Confirm the action in the reply
+        await interaction.reply(`User ${user.tag} has been successfully added to channel: ${channel.name}.`);
     } catch (error) {
         console.error('Error adding user to channel:', error);
         await interaction.reply('There was an error while trying to add the user to the channel. Please check the bot permissions and user roles.');
