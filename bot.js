@@ -168,6 +168,9 @@ client.on('interactionCreate', async (interaction) => {
     const user = interaction.options.getUser('usr');
     const guild = interaction.guild; // Get the guild (server)
 
+    // Defer the reply to let Discord know we're working on it
+    await interaction.deferReply();
+
     try {
       // Fetch all channels in the guild
       const channels = await guild.channels.fetch();
@@ -201,10 +204,10 @@ client.on('interactionCreate', async (interaction) => {
       }
 
       // Confirm the action in the reply
-      await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully added to all channels.`);
+      await interaction.followUp(`User ${user.tag} (ID: ${user.id}) has been successfully added to all channels.`);
     } catch (error) {
       console.error('Error adding user to all channels:', error);
-      await interaction.reply('There was an error while trying to add the user to all channels.');
+      await interaction.followUp('There was an error while trying to add the user to all channels.');
     }
   } else if (commandName === 'remove-user') {
     // Get the user option from the command
@@ -233,3 +236,4 @@ client.on('interactionCreate', async (interaction) => {
 
 // Login to Discord with your bot's token
 client.login(TOKEN);
+
