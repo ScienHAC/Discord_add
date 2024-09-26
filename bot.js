@@ -108,12 +108,18 @@ const client = new Client({
 const commands = [
   {
     name: 'add-user',
-    description: 'Add a user to private and public channels',
+    description: 'Add a user to a specific channel',
     options: [
       {
         type: 6, // USER type (user ID)
         name: 'usr',
         description: 'The user to add',
+        required: true,
+      },
+      {
+        type: 7, // CHANNEL type (channel ID)
+        name: 'channel',
+        description: 'The channel to add the user to',
         required: true,
       },
     ],
@@ -150,16 +156,20 @@ client.on('interactionCreate', async (interaction) => {
   if (commandName === 'add-user') {
     // Get the user option from the command
     const user = interaction.options.getUser('usr');
+    // Get the channel option from the command
+    const channel = interaction.options.getChannel('channel'); // Use getChannel() to fetch the channel object
 
-    // Reply with the user's name
-    await interaction.reply(`You mentioned user: ${user.tag} (ID: ${user.id})`);
+    // Check if the channel is a text channel
+    if (!channel || !channel.isText()) {
+      await interaction.reply('Please provide a valid text channel.');
+      return;
+    }
+
+    // Reply with the user's name and the channel name
+    await interaction.reply(`You mentioned user: ${user.tag} (ID: ${user.id}) for channel: ${channel.name} (ID: ${channel.id})`);
   }
 });
 
 // Login to Discord with your bot's token
 client.login(TOKEN);
 
-
-
-// Login to Discord with your bot's token
-client.login(TOKEN);
