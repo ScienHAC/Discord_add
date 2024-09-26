@@ -161,18 +161,41 @@ client.on('interactionCreate', async (interaction) => {
     // Get the channel option from the command
     const channel = interaction.options.getChannel('channel');
 
-    // Check if the channel is a text-based channel
-    if (!channel || !channel.isTextBased()) {
-      await interaction.reply('Please provide a valid text channel.');
+    // Check if the channel is valid (it should exist)
+    if (!channel) {
+      await interaction.reply('Please provide a valid channel.');
       return;
     }
 
     try {
       // Add the user to the specified channel by editing permissions
-      await channel.permissionOverwrites.edit(user, {
-        VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,  // Use PermissionsBitField.Flags
-        SEND_MESSAGES: PermissionsBitField.Flags.SendMessages, // Use PermissionsBitField.Flags
-      });
+      // Adjust permissions for different types of channels
+      if (channel.isTextBased()) {
+        // For text-based channels (including forums, announcements), grant VIEW_CHANNEL and SEND_MESSAGES
+        await channel.permissionOverwrites.edit(user, {
+          VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
+          SEND_MESSAGES: PermissionsBitField.Flags.SendMessages,
+        });
+      } else if (channel.isVoiceBased()) {
+        // For voice-based channels (including stage), grant VIEW_CHANNEL and CONNECT
+        await channel.permissionOverwrites.edit(user, {
+          VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
+          CONNECT: PermissionsBitField.Flags.Connect,
+          // Optional for stage channels, grant REQUEST_TO_SPEAK if desired
+          REQUEST_TO_SPEAK: PermissionsBitField.Flags.RequestToSpeak,
+        });
+      } else if (channel.type === 15) { // 15 is for forum channels in discord.js v14
+        // For forum channels, grant VIEW_CHANNEL and SEND_MESSAGES_IN_THREADS
+        await channel.permissionOverwrites.edit(user, {
+          VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
+          SEND_MESSAGES_IN_THREADS: PermissionsBitField.Flags.SendMessagesInThreads,
+        });
+      } else {
+        // For any other channels or categories, just grant VIEW_CHANNEL
+        await channel.permissionOverwrites.edit(user, {
+          VIEW_CHANNEL: PermissionsBitField.Flags.ViewChannel,
+        });
+      }
 
       // Confirm the action in the reply
       await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully added to channel: ${channel.name} (ID: ${channel.id}).`);
@@ -182,6 +205,7 @@ client.on('interactionCreate', async (interaction) => {
     }
   }
 });
+
 
 
 
