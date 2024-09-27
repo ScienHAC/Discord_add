@@ -20,18 +20,12 @@ const client = new Client({
 const commands = [
   {
     name: 'add-user',
-    description: 'Add a user to a specific channel',
+    description: 'Add a user to all channels in the server',
     options: [
       {
         type: 6, // USER type
         name: 'usr',
         description: 'The user to add (ID or @mention)',
-        required: true,
-      },
-      {
-        type: 7, // CHANNEL type
-        name: 'channel',
-        description: 'The channel to add the user to',
         required: true,
       },
     ],
@@ -55,19 +49,13 @@ const commands = [
     ],
   },
   {
-    name: 'remove-usr',
-    description: 'Remove a user by ID from a specific channel',
+    name: 'remove-user-all',
+    description: 'Remove a user from all channels in the server',
     options: [
       {
         type: 6, // USER type
         name: 'usr',
-        description: 'The user to remove by ID',
-        required: true,
-      },
-      {
-        type: 7, // CHANNEL type
-        name: 'channel',
-        description: 'The channel to remove the user from',
+        description: 'The user to remove (ID or @mention)',
         required: true,
       },
     ],
@@ -99,33 +87,42 @@ client.on('interactionCreate', async (interaction) => {
   const { commandName } = interaction;
 
   if (commandName === 'add-user') {
-    // Get the user and channel options from the command
+    // Get the user option from the command
     const user = interaction.options.getUser('usr');
-    const channel = interaction.options.getChannel('channel');
-
-    // Check if the channel is valid
-    if (!channel) {
-      await interaction.reply('Please provide a valid channel.');
-      return;
-    }
+    
+    // Get all channels in the guild
+    const guild = interaction.guild;
+    const channels = guild.channels.cache;
 
     try {
-      // Add the user to the specified channel by editing permissions
-      await channel.permissionOverwrites.edit(user, {
-        [PermissionsBitField.Flags.ViewChannel]: true,
-        [PermissionsBitField.Flags.SendMessages]: true,       // Text Channels
-        [PermissionsBitField.Flags.Connect]: true,            // Voice Channels
-        [PermissionsBitField.Flags.Speak]: true,              // Voice Permissions
-        [PermissionsBitField.Flags.SendMessagesInThreads]: true,  // Forum Channels
+      // Loop through each channel and grant necessary permissions
+      channels.forEach(async (channel) => {
+        if (channel.isTextBased()) {
+          await channel.permissionOverwrites.edit(user, {
+            [PermissionsBitField.Flags.ViewChannel]: true,
+            [PermissionsBitField.Flags.SendMessages]: true,
+          });
+        } else if (channel.isVoiceBased()) {
+          await channel.permissionOverwrites.edit(user, {
+            [PermissionsBitField.Flags.ViewChannel]: true,
+            [PermissionsBitField.Flags.Connect]: true,
+            [PermissionsBitField.Flags.Speak]: true,
+          });
+        } else if (channel.type === 15) { // Forum channels
+          await channel.permissionOverwrites.edit(user, {
+            [PermissionsBitField.Flags.ViewChannel]: true,
+            [PermissionsBitField.Flags.SendMessagesInThreads]: true,
+          });
+        }
       });
 
       // Confirm the action in the reply
-      await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully added to channel: ${channel.name} (ID: ${channel.id}).`);
+      await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully added to all channels.`);
     } catch (error) {
-      console.error('Error adding user to channel:', error);
-      await interaction.reply('There was an error while trying to add the user to the channel.');
+      console.error('Error adding user to all channels:', error);
+      await interaction.reply('There was an error while trying to add the user to all channels.');
     }
-  } else if (commandName === 'remove-user' || commandName === 'remove-usr') {
+  } else if (commandName === 'remove-user') {
     // Get the user and channel options from the command
     const user = interaction.options.getUser('usr');
     const channel = interaction.options.getChannel('channel');
@@ -137,20 +134,41 @@ client.on('interactionCreate', async (interaction) => {
     }
 
     try {
-      // Remove the user from the specified channel by deleting their permission overwrite
+      // Remove the user from the specific channel by deleting their permission overwrite
       await channel.permissionOverwrites.delete(user);
 
       // Confirm the action in the reply
       await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully removed from channel: ${channel.name} (ID: ${channel.id}).`);
     } catch (error) {
-      console.error('Error removing user from channel:', error);
+      console.error('Error removing user from the channel:', error);
       await interaction.reply('There was an error while trying to remove the user from the channel.');
+    }
+  } else if (commandName === 'remove-user-all') {
+    // Get the user option from the command
+    const user = interaction.options.getUser('usr');
+    
+    // Get all channels in the guild
+    const guild = interaction.guild;
+    const channels = guild.channels.cache;
+
+    try {
+      // Loop through each channel and remove permission overwrites for the user
+      channels.forEach(async (channel) => {
+        await channel.permissionOverwrites.delete(user);
+      });
+
+      // Confirm the action in the reply
+      await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully removed from all channels.`);
+    } catch (error) {
+      console.error('Error removing user from all channels:', error);
+      await interaction.reply('There was an error while trying to remove the user from all channels.');
     }
   }
 });
 
 // Login to Discord with your bot's token
 client.login(TOKEN);
+
 
 
 
