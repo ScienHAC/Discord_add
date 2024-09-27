@@ -190,7 +190,7 @@ const commands = [
         type: 6, // USER type
         name: 'usr',
         description: 'The user to add (ID or @mention)',
-        required: false, // Optional
+        required: true, // Required
       },
       {
         type: 8, // ROLE type
@@ -273,44 +273,20 @@ client.on('interactionCreate', async (interaction) => {
       channels.forEach(async (channel) => {
         setTimeout(async () => {
           try {
+            // Add user permissions
             if (user) {
-              if (channel.isTextBased()) {
-                await channel.permissionOverwrites.edit(user, {
-                  [PermissionsBitField.Flags.ViewChannel]: true,
-                  [PermissionsBitField.Flags.SendMessages]: true,
-                });
-              } else if (channel.isVoiceBased()) {
-                await channel.permissionOverwrites.edit(user, {
-                  [PermissionsBitField.Flags.ViewChannel]: true,
-                  [PermissionsBitField.Flags.Connect]: true,
-                  [PermissionsBitField.Flags.Speak]: true,
-                });
-              } else if (channel.type === 15) { // Forum channels
-                await channel.permissionOverwrites.edit(user, {
-                  [PermissionsBitField.Flags.ViewChannel]: true,
-                  [PermissionsBitField.Flags.SendMessagesInThreads]: true,
-                });
-              }
+              await channel.permissionOverwrites.edit(user, {
+                [PermissionsBitField.Flags.ViewChannel]: true,
+                [PermissionsBitField.Flags.SendMessages]: true,
+              });
             }
 
+            // Add role permissions
             if (role) {
-              if (channel.isTextBased()) {
-                await channel.permissionOverwrites.edit(role, {
-                  [PermissionsBitField.Flags.ViewChannel]: true,
-                  [PermissionsBitField.Flags.SendMessages]: true,
-                });
-              } else if (channel.isVoiceBased()) {
-                await channel.permissionOverwrites.edit(role, {
-                  [PermissionsBitField.Flags.ViewChannel]: true,
-                  [PermissionsBitField.Flags.Connect]: true,
-                  [PermissionsBitField.Flags.Speak]: true,
-                });
-              } else if (channel.type === 15) { // Forum channels
-                await channel.permissionOverwrites.edit(role, {
-                  [PermissionsBitField.Flags.ViewChannel]: true,
-                  [PermissionsBitField.Flags.SendMessagesInThreads]: true,
-                });
-              }
+              await channel.permissionOverwrites.edit(role, {
+                [PermissionsBitField.Flags.ViewChannel]: true,
+                [PermissionsBitField.Flags.SendMessages]: true,
+              });
             }
           } catch (error) {
             console.error(`Error adding to channel ${channel.name}:`, error);
@@ -319,7 +295,7 @@ client.on('interactionCreate', async (interaction) => {
         i++;
       });
 
-      await interaction.reply(`User ${user ? user.tag : 'N/A'} and role ${role ? role.name : 'N/A'} have been successfully added to all channels.`);
+      await interaction.reply(`User ${user.tag} and role ${role ? role.name : 'N/A'} have been successfully added to all channels.`);
     } catch (error) {
       console.error('Error adding user or role to channels:', error);
       await interaction.reply('There was an error while trying to add the user or role to all channels.');
@@ -366,7 +342,7 @@ client.on('interactionCreate', async (interaction) => {
         i++;
       });
 
-      await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully removed from all channels.`);
+      await interaction.reply(`User ${user.tag} has been successfully removed from all channels.`);
     } catch (error) {
       console.error('Error removing user from all channels:', error);
       await interaction.reply('There was an error while trying to remove the user from all channels.');
@@ -376,4 +352,5 @@ client.on('interactionCreate', async (interaction) => {
 
 // Login to Discord with your bot's token
 client.login(TOKEN);
+
 
