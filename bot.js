@@ -166,12 +166,11 @@ client.login(TOKEN);*/
 const { Client, GatewayIntentBits, PermissionsBitField } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-require('dotenv').config(); // Ensure dotenv is included to load environment variables
+require('dotenv').config();
 
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
 
-// Create a new client instance
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -191,13 +190,13 @@ const commands = [
         type: 6, // USER type
         name: 'usr',
         description: 'The user to add (ID or @mention)',
-        required: false, // Make it optional
+        required: false, // Optional
       },
       {
         type: 8, // ROLE type
         name: 'role',
         description: 'The role to add',
-        required: false, // Make it optional
+        required: false, // Optional
       },
     ],
   },
@@ -209,13 +208,13 @@ const commands = [
         type: 6, // USER type
         name: 'usr',
         description: 'The user to remove (ID or @mention)',
-        required: false, // Make it optional
+        required: false, // Optional
       },
       {
         type: 8, // ROLE type
         name: 'role',
         description: 'The role to remove',
-        required: false, // Make it optional
+        required: false, // Optional
       },
       {
         type: 7, // CHANNEL type
@@ -226,19 +225,13 @@ const commands = [
     ],
   },
   {
-    name: 'remove-usr',
-    description: 'Remove a user by ID from a specific channel',
+    name: 'remove-user-all',
+    description: 'Remove a user from all channels in the server',
     options: [
       {
         type: 6, // USER type
         name: 'usr',
-        description: 'The user to remove by ID',
-        required: true,
-      },
-      {
-        type: 7, // CHANNEL type
-        name: 'channel',
-        description: 'The channel to remove the user from',
+        description: 'The user to remove (ID or @mention)',
         required: true,
       },
     ],
@@ -279,46 +272,48 @@ client.on('interactionCreate', async (interaction) => {
     try {
       channels.forEach(async (channel) => {
         setTimeout(async () => {
-          if (user) {
-            // Handle adding user permissions
-            if (channel.isTextBased()) {
-              await channel.permissionOverwrites.edit(user, {
-                [PermissionsBitField.Flags.ViewChannel]: true,
-                [PermissionsBitField.Flags.SendMessages]: true,
-              });
-            } else if (channel.isVoiceBased()) {
-              await channel.permissionOverwrites.edit(user, {
-                [PermissionsBitField.Flags.ViewChannel]: true,
-                [PermissionsBitField.Flags.Connect]: true,
-                [PermissionsBitField.Flags.Speak]: true,
-              });
-            } else if (channel.type === 15) { // Forum channels
-              await channel.permissionOverwrites.edit(user, {
-                [PermissionsBitField.Flags.ViewChannel]: true,
-                [PermissionsBitField.Flags.SendMessagesInThreads]: true,
-              });
+          try {
+            if (user) {
+              if (channel.isTextBased()) {
+                await channel.permissionOverwrites.edit(user, {
+                  [PermissionsBitField.Flags.ViewChannel]: true,
+                  [PermissionsBitField.Flags.SendMessages]: true,
+                });
+              } else if (channel.isVoiceBased()) {
+                await channel.permissionOverwrites.edit(user, {
+                  [PermissionsBitField.Flags.ViewChannel]: true,
+                  [PermissionsBitField.Flags.Connect]: true,
+                  [PermissionsBitField.Flags.Speak]: true,
+                });
+              } else if (channel.type === 15) { // Forum channels
+                await channel.permissionOverwrites.edit(user, {
+                  [PermissionsBitField.Flags.ViewChannel]: true,
+                  [PermissionsBitField.Flags.SendMessagesInThreads]: true,
+                });
+              }
             }
-          }
 
-          if (role) {
-            // Handle adding role permissions
-            if (channel.isTextBased()) {
-              await channel.permissionOverwrites.edit(role, {
-                [PermissionsBitField.Flags.ViewChannel]: true,
-                [PermissionsBitField.Flags.SendMessages]: true,
-              });
-            } else if (channel.isVoiceBased()) {
-              await channel.permissionOverwrites.edit(role, {
-                [PermissionsBitField.Flags.ViewChannel]: true,
-                [PermissionsBitField.Flags.Connect]: true,
-                [PermissionsBitField.Flags.Speak]: true,
-              });
-            } else if (channel.type === 15) { // Forum channels
-              await channel.permissionOverwrites.edit(role, {
-                [PermissionsBitField.Flags.ViewChannel]: true,
-                [PermissionsBitField.Flags.SendMessagesInThreads]: true,
-              });
+            if (role) {
+              if (channel.isTextBased()) {
+                await channel.permissionOverwrites.edit(role, {
+                  [PermissionsBitField.Flags.ViewChannel]: true,
+                  [PermissionsBitField.Flags.SendMessages]: true,
+                });
+              } else if (channel.isVoiceBased()) {
+                await channel.permissionOverwrites.edit(role, {
+                  [PermissionsBitField.Flags.ViewChannel]: true,
+                  [PermissionsBitField.Flags.Connect]: true,
+                  [PermissionsBitField.Flags.Speak]: true,
+                });
+              } else if (channel.type === 15) { // Forum channels
+                await channel.permissionOverwrites.edit(role, {
+                  [PermissionsBitField.Flags.ViewChannel]: true,
+                  [PermissionsBitField.Flags.SendMessagesInThreads]: true,
+                });
+              }
             }
+          } catch (error) {
+            console.error(`Error adding to channel ${channel.name}:`, error);
           }
         }, i * 1000); // Add delay between channel permission edits
         i++;
@@ -341,12 +336,10 @@ client.on('interactionCreate', async (interaction) => {
 
     try {
       if (user) {
-        // Remove user from channel
         await channel.permissionOverwrites.delete(user);
       }
 
       if (role) {
-        // Remove role from channel
         await channel.permissionOverwrites.delete(role);
       }
 
@@ -355,25 +348,32 @@ client.on('interactionCreate', async (interaction) => {
       console.error('Error removing user or role from the channel:', error);
       await interaction.reply('There was an error while trying to remove the user or role from the channel.');
     }
-  } else if (commandName === 'remove-usr') {
-    // Handle removing user by ID
+  } else if (commandName === 'remove-user-all') {
     const user = interaction.options.getUser('usr');
-    const channel = interaction.options.getChannel('channel');
+    const guild = interaction.guild;
+    const channels = guild.channels.cache;
 
-    if (!channel) {
-      await interaction.reply('Please provide a valid channel.');
-      return;
-    }
-
+    let i = 0;
     try {
-      await channel.permissionOverwrites.delete(user);
-      await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully removed from channel: ${channel.name} (ID: ${channel.id}).`);
+      channels.forEach(async (channel) => {
+        setTimeout(async () => {
+          try {
+            await channel.permissionOverwrites.delete(user);
+          } catch (error) {
+            console.error(`Error removing user from channel ${channel.name}:`, error);
+          }
+        }, i * 1000); // Add delay between channel permission deletions
+        i++;
+      });
+
+      await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully removed from all channels.`);
     } catch (error) {
-      console.error('Error removing user from channel:', error);
-      await interaction.reply('There was an error while trying to remove the user from the channel.');
+      console.error('Error removing user from all channels:', error);
+      await interaction.reply('There was an error while trying to remove the user from all channels.');
     }
   }
 });
 
 // Login to Discord with your bot's token
 client.login(TOKEN);
+
