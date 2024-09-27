@@ -1,7 +1,8 @@
-const { Client, GatewayIntentBits } = require('discord.js');
+const { Client, GatewayIntentBits, PermissionsBitField } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-const { PermissionsBitField } = require('discord.js');
+require('dotenv').config(); // Ensure dotenv is included to load environment variables
+
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
 
@@ -22,13 +23,13 @@ const commands = [
     description: 'Add a user to a specific channel',
     options: [
       {
-        type: 6, // USER type (user ID)
+        type: 6, // USER type
         name: 'usr',
-        description: 'The user to add',
+        description: 'The user to add (ID or @mention)',
         required: true,
       },
       {
-        type: 7, // CHANNEL type (channel ID)
+        type: 7, // CHANNEL type
         name: 'channel',
         description: 'The channel to add the user to',
         required: true,
@@ -40,13 +41,31 @@ const commands = [
     description: 'Remove a user from a specific channel',
     options: [
       {
-        type: 6, // USER type (user ID)
+        type: 6, // USER type
         name: 'usr',
-        description: 'The user to remove',
+        description: 'The user to remove (ID or @mention)',
         required: true,
       },
       {
-        type: 7, // CHANNEL type (channel ID)
+        type: 7, // CHANNEL type
+        name: 'channel',
+        description: 'The channel to remove the user from',
+        required: true,
+      },
+    ],
+  },
+  {
+    name: 'remove-usr',
+    description: 'Remove a user by ID from a specific channel',
+    options: [
+      {
+        type: 6, // USER type
+        name: 'usr',
+        description: 'The user to remove by ID',
+        required: true,
+      },
+      {
+        type: 7, // CHANNEL type
         name: 'channel',
         description: 'The channel to remove the user from',
         required: true,
@@ -79,71 +98,67 @@ client.on('interactionCreate', async (interaction) => {
 
   const { commandName } = interaction;
 
-  // Inside the 'add-user' interaction handler
-if (commandName === 'add-user') {
-  const user = interaction.options.getUser('usr');
-  const channel = interaction.options.getChannel('channel');
-
-  if (!channel || !user) {
-    await interaction.reply('Please provide a valid user and channel.');
-    return;
-  }
-
-  try {
-    const roleName = `TempRoleForUser_${user.id}`;
-    let role = interaction.guild.roles.cache.find(r => r.name === roleName);
-
-    if (!role) {
-      role = await interaction.guild.roles.create({
-        name: roleName,
-        permissions: [
-          PermissionsBitField.Flags.ViewChannel,
-          PermissionsBitField.Flags.SendMessages,
-          PermissionsBitField.Flags.Connect, // For voice channels if needed
-          PermissionsBitField.Flags.RequestToSpeak, // For voice channels if needed
-        ],
-        reason: `Temporary role for ${user.tag} to access ${channel.name}`,
-      });
-    }
-
-    const member = await interaction.guild.members.fetch(user.id);
-    await member.roles.add(role);
-    await channel.permissionOverwrites.edit(role, {
-      VIEW_CHANNEL: true,
-      SEND_MESSAGES: true,
-      CONNECT: true, // For voice channels if needed
-      REQUEST_TO_SPEAK: true, // For voice channels if needed
-    });
-
-    await interaction.reply(`User ${user.tag} has been successfully added to channel: ${channel.name}.`);
-  } catch (error) {
-    console.error('Error adding user to channel:', error);
-    await interaction.reply('There was an error while trying to add the user to the channel. Please check the bot permissions and user roles.');
-  }
-}else if (commandName === 'remove-user') {
+  if (commandName === 'add-user') {
+    // Get the user and channel options from the command
     const user = interaction.options.getUser('usr');
     const channel = interaction.options.getChannel('channel');
 
-    if (!channel || !user) {
-      await interaction.reply('Please provide a valid user and channel.');
+    // Check if the channel is valid
+    if (!channel) {
+      await interaction.reply('Please provide a valid channel.');
       return;
     }
 
     try {
-      const member = await interaction.guild.members.fetch(user.id);
-      const roleName = `TempRoleForUser_${user.id}`;
-      const role = interaction.guild.roles.cache.find(r => r.name === roleName);
-
-      if (role) {
-        await member.roles.remove(role);
+      // Add the user to the specified channel by editing permissions
+      if (channel.isTextBased()) {
+        await channel.permissionOverwrites.edit(user, {
+          [PermissionsBitField.Flags.ViewChannel]: true,
+          [PermissionsBitField.Flags.SendMessages]: true,
+        });
+      } else if (channel.isVoiceBased()) {
+        await channel.permissionOverwrites.edit(user, {
+          [PermissionsBitField.Flags.ViewChannel]: true,
+          [PermissionsBitField.Flags.Connect]: true,
+          [PermissionsBitField.Flags.Speak]: true,
+        });
+      } else if (channel.type === 15) { // Forum channels
+        await channel.permissionOverwrites.edit(user, {
+          [PermissionsBitField.Flags.ViewChannel]: true,
+          [PermissionsBitField.Flags.SendMessagesInThreads]: true,
+        });
+      } else {
+        await channel.permissionOverwrites.edit(user, {
+          [PermissionsBitField.Flags.ViewChannel]: true,
+        });
       }
 
-      await channel.permissionOverwrites.delete(role);
+      // Confirm the action in the reply
+      await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully added to channel: ${channel.name} (ID: ${channel.id}).`);
+    } catch (error) {
+      console.error('Error adding user to channel:', error);
+      await interaction.reply('There was an error while trying to add the user to the channel.');
+    }
+  } else if (commandName === 'remove-user' || commandName === 'remove-usr') {
+    // Get the user and channel options from the command
+    const user = interaction.options.getUser('usr');
+    const channel = interaction.options.getChannel('channel');
 
-      await interaction.reply(`User ${user.tag} has been successfully removed from channel: ${channel.name}.`);
+    // Check if the channel is valid
+    if (!channel) {
+      await interaction.reply('Please provide a valid channel.');
+      return;
+    }
+
+    try {
+      // Remove the user from the specified channel by deleting their permission overwrite
+      await channel.permissionOverwrites.delete(user);
+
+      // Confirm the action in the reply
+      await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully removed from channel: ${channel.name} (ID: ${channel.id}).`);
     } catch (error) {
       console.error('Error removing user from channel:', error);
-      await interaction.reply('There was an error while trying to remove the user from the channel. Please check the bot permissions and user roles.');
+      await interaction.reply('There was an error while trying to remove the user from the channel.');
     }
   }
 });
