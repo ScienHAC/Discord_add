@@ -1,16 +1,22 @@
 {
-  "name": "discord-bot",
+  "name": "my-discord-bot",
   "version": "1.0.0",
-  "description": "A Discord bot that grants access to users to public and private channels",
-  "main": "bot.js",
+  "description": "A simple Discord bot for managing users",
+  "main": "index.js",
   "scripts": {
-    "start": "node bot.js"
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Piyush Sharma",
-  "license": "MIT",
   "dependencies": {
-    "discord.js": "^14.0.3",
-    "@discordjs/rest": "^1.2.0",
-    "discord-api-types": "^0.37.38"
-  }
+    "discord.js": "^14.7.1",
+    "dotenv": "^10.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "author": "Your Name",
+  "license": "MIT"
 }
