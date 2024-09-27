@@ -2,9 +2,9 @@
   "name": "my-discord-bot",
   "version": "1.0.0",
   "description": "A simple Discord bot for managing users",
-  "main": "bot.js", // Make sure this matches the name of your main JavaScript file
+  "main": "bot.js", 
   "scripts": {
-    "start": "node bot.js", // This also matches the main file
+    "start": "node bot.js", 
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
