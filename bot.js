@@ -1,12 +1,11 @@
 const { Client, GatewayIntentBits, PermissionsBitField } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-require('dotenv').config(); // Ensure dotenv is included to load environment variables
+require('dotenv').config();
 
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
 
-// Create a new client instance
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -87,77 +86,70 @@ client.on('interactionCreate', async (interaction) => {
   const { commandName } = interaction;
 
   if (commandName === 'add-user') {
-    // Get the user option from the command
     const user = interaction.options.getUser('usr');
-    
-    // Get all channels in the guild
     const guild = interaction.guild;
     const channels = guild.channels.cache;
 
+    let i = 0;
     try {
-      // Loop through each channel and grant necessary permissions
       channels.forEach(async (channel) => {
-        if (channel.isTextBased()) {
-          await channel.permissionOverwrites.edit(user, {
-            [PermissionsBitField.Flags.ViewChannel]: true,
-            [PermissionsBitField.Flags.SendMessages]: true,
-          });
-        } else if (channel.isVoiceBased()) {
-          await channel.permissionOverwrites.edit(user, {
-            [PermissionsBitField.Flags.ViewChannel]: true,
-            [PermissionsBitField.Flags.Connect]: true,
-            [PermissionsBitField.Flags.Speak]: true,
-          });
-        } else if (channel.type === 15) { // Forum channels
-          await channel.permissionOverwrites.edit(user, {
-            [PermissionsBitField.Flags.ViewChannel]: true,
-            [PermissionsBitField.Flags.SendMessagesInThreads]: true,
-          });
-        }
+        setTimeout(async () => {
+          if (channel.isTextBased()) {
+            await channel.permissionOverwrites.edit(user, {
+              [PermissionsBitField.Flags.ViewChannel]: true,
+              [PermissionsBitField.Flags.SendMessages]: true,
+            });
+          } else if (channel.isVoiceBased()) {
+            await channel.permissionOverwrites.edit(user, {
+              [PermissionsBitField.Flags.ViewChannel]: true,
+              [PermissionsBitField.Flags.Connect]: true,
+              [PermissionsBitField.Flags.Speak]: true,
+            });
+          } else if (channel.type === 15) { // Forum channels
+            await channel.permissionOverwrites.edit(user, {
+              [PermissionsBitField.Flags.ViewChannel]: true,
+              [PermissionsBitField.Flags.SendMessagesInThreads]: true,
+            });
+          }
+        }, i * 1000); // Add delay between channel permission edits
+        i++;
       });
 
-      // Confirm the action in the reply
       await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully added to all channels.`);
     } catch (error) {
-      console.error('Error adding user to all channels:', error);
+      console.error('Error adding user to channels:', error);
       await interaction.reply('There was an error while trying to add the user to all channels.');
     }
   } else if (commandName === 'remove-user') {
-    // Get the user and channel options from the command
     const user = interaction.options.getUser('usr');
     const channel = interaction.options.getChannel('channel');
 
-    // Check if the channel is valid
     if (!channel) {
       await interaction.reply('Please provide a valid channel.');
       return;
     }
 
     try {
-      // Remove the user from the specific channel by deleting their permission overwrite
       await channel.permissionOverwrites.delete(user);
-
-      // Confirm the action in the reply
       await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully removed from channel: ${channel.name} (ID: ${channel.id}).`);
     } catch (error) {
       console.error('Error removing user from the channel:', error);
       await interaction.reply('There was an error while trying to remove the user from the channel.');
     }
   } else if (commandName === 'remove-user-all') {
-    // Get the user option from the command
     const user = interaction.options.getUser('usr');
-    
-    // Get all channels in the guild
     const guild = interaction.guild;
     const channels = guild.channels.cache;
 
+    let i = 0;
     try {
-      // Loop through each channel and remove permission overwrites for the user
       channels.forEach(async (channel) => {
-        await channel.permissionOverwrites.delete(user);
+        setTimeout(async () => {
+          await channel.permissionOverwrites.delete(user);
+        }, i * 1000); // Add delay between channel permission deletions
+        i++;
       });
 
-      // Confirm the action in the reply
       await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully removed from all channels.`);
     } catch (error) {
       console.error('Error removing user from all channels:', error);
@@ -168,6 +160,7 @@ client.on('interactionCreate', async (interaction) => {
 
 // Login to Discord with your bot's token
 client.login(TOKEN);
+
 
 
 
