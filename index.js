@@ -582,6 +582,10 @@ client.once('ready', () => {
   });
 });
 
+app.get('/', (req, res) => {
+  res.send('Hello, the bot is running and ready to handle interactions!');
+});
+
 // Login to Discord with your bot's token
 client.login(TOKEN);
 
