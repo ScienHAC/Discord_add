@@ -1,22 +1,24 @@
 {
-  "name": "my-discord-bot",
+  "name": "discord_add",
   "version": "1.0.0",
-  "description": "A simple Discord bot for managing users",
-  "main": "bot.js", 
+  "description": "Welcome to the **AddBits Supernova** Discord bot repository! **AddBits Supernova** is designed to simplify user management across all channels in your Discord server. With intuitive commands, you can effortlessly add or remove users and roles from channels, ensuring efficient communication and collaboration.",
+  "main": "index.js",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
-    "start": "node bot.js", 
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
   },
   "dependencies": {
     "discord.js": "^14.7.1",
-    "dotenv": "^10.0.0"
+    "dotenv": "^10.0.0",
+    "express": "^4.21.2"
   },
   "devDependencies": {
     "eslint": "^8.0.0"
   },
-  "engines": {
-    "node": ">=14.0.0"
-  },
-  "author": "Piyush Sharma",
-  "license": "MIT"
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
