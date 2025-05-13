@@ -1,371 +1,17 @@
-/*const { Client, GatewayIntentBits, PermissionsBitField } = require('discord.js');
-const { REST } = require('@discordjs/rest');
-const { Routes } = require('discord-api-types/v9');
-require('dotenv').config();
-
-const TOKEN = process.env.TOKEN;
-const CLIENT_ID = process.env.CLIENT_ID;
-
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.GuildMessageReactions,
-  ],
-});
-
-// Register the slash commands globally
-const commands = [
-  {
-    name: 'add-user',
-    description: 'Add a user to all channels in the server',
-    options: [
-      {
-        type: 6, // USER type
-        name: 'usr',
-        description: 'The user to add (ID or @mention)',
-        required: true,
-      },
-    ],
-  },
-  {
-    name: 'remove-user',
-    description: 'Remove a user from a specific channel',
-    options: [
-      {
-        type: 6, // USER type
-        name: 'usr',
-        description: 'The user to remove (ID or @mention)',
-        required: true,
-      },
-      {
-        type: 7, // CHANNEL type
-        name: 'channel',
-        description: 'The channel to remove the user from',
-        required: true,
-      },
-    ],
-  },
-  {
-    name: 'remove-user-all',
-    description: 'Remove a user from all channels in the server',
-    options: [
-      {
-        type: 6, // USER type
-        name: 'usr',
-        description: 'The user to remove (ID or @mention)',
-        required: true,
-      },
-    ],
-  },
-];
-
-const rest = new REST({ version: '9' }).setToken(TOKEN);
-
-// Register the slash commands globally
-(async () => {
-  try {
-    console.log('Started refreshing application (/) commands.');
-    await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
-    console.log('Successfully reloaded application (/) commands.');
-  } catch (error) {
-    console.error('Error registering commands:', error);
-  }
-})();
-
-// When the bot is ready
-client.once('ready', () => {
-  console.log(`Logged in as ${client.user.tag}!`);
-});
-
-// Command handling
-client.on('interactionCreate', async (interaction) => {
-  if (!interaction.isCommand()) return;
-
-  const { commandName } = interaction;
-
-  if (commandName === 'add-user') {
-    const user = interaction.options.getUser('usr');
-    const guild = interaction.guild;
-    const channels = guild.channels.cache;
-
-    let i = 0;
-    try {
-      channels.forEach(async (channel) => {
-        setTimeout(async () => {
-          if (channel.isTextBased()) {
-            await channel.permissionOverwrites.edit(user, {
-              [PermissionsBitField.Flags.ViewChannel]: true,
-              [PermissionsBitField.Flags.SendMessages]: true,
-            });
-          } else if (channel.isVoiceBased()) {
-            await channel.permissionOverwrites.edit(user, {
-              [PermissionsBitField.Flags.ViewChannel]: true,
-              [PermissionsBitField.Flags.Connect]: true,
-              [PermissionsBitField.Flags.Speak]: true,
-            });
-          } else if (channel.type === 15) { // Forum channels
-            await channel.permissionOverwrites.edit(user, {
-              [PermissionsBitField.Flags.ViewChannel]: true,
-              [PermissionsBitField.Flags.SendMessagesInThreads]: true,
-            });
-          }
-        }, i * 1000); // Add delay between channel permission edits
-        i++;
-      });
-
-      await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully added to all channels.`);
-    } catch (error) {
-      console.error('Error adding user to channels:', error);
-      await interaction.reply('There was an error while trying to add the user to all channels.');
-    }
-  } else if (commandName === 'remove-user') {
-    const user = interaction.options.getUser('usr');
-    const channel = interaction.options.getChannel('channel');
-
-    if (!channel) {
-      await interaction.reply('Please provide a valid channel.');
-      return;
-    }
-
-    try {
-      await channel.permissionOverwrites.delete(user);
-      await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully removed from channel: ${channel.name} (ID: ${channel.id}).`);
-    } catch (error) {
-      console.error('Error removing user from the channel:', error);
-      await interaction.reply('There was an error while trying to remove the user from the channel.');
-    }
-  } else if (commandName === 'remove-user-all') {
-    const user = interaction.options.getUser('usr');
-    const guild = interaction.guild;
-    const channels = guild.channels.cache;
-
-    let i = 0;
-    try {
-      channels.forEach(async (channel) => {
-        setTimeout(async () => {
-          await channel.permissionOverwrites.delete(user);
-        }, i * 1000); // Add delay between channel permission deletions
-        i++;
-      });
-
-      await interaction.reply(`User ${user.tag} (ID: ${user.id}) has been successfully removed from all channels.`);
-    } catch (error) {
-      console.error('Error removing user from all channels:', error);
-      await interaction.reply('There was an error while trying to remove the user from all channels.');
-    }
-  }
-});
-
-// Login to Discord with your bot's token
-client.login(TOKEN);*/
-
-
-
-// const { Client, GatewayIntentBits, PermissionsBitField } = require('discord.js');
-// const { REST } = require('@discordjs/rest');
-// const { Routes } = require('discord-api-types/v9');
-// require('dotenv').config();
-
-// const TOKEN = process.env.TOKEN;
-// const CLIENT_ID = process.env.CLIENT_ID;
-
-// const client = new Client({
-//   intents: [
-//     GatewayIntentBits.Guilds,
-//     GatewayIntentBits.GuildMembers,
-//     GatewayIntentBits.GuildMessages,
-//     GatewayIntentBits.GuildMessageReactions,
-//   ],
-// });
-
-// // Register the slash commands globally
-// const commands = [
-//   {
-//     name: 'add-user',
-//     description: 'Add a user or role to all channels in the server',
-//     options: [
-//       {
-//         type: 6, // USER type
-//         name: 'usr',
-//         description: 'The user to add (ID or @mention)',
-//         required: true, // Required
-//       },
-//       {
-//         type: 8, // ROLE type
-//         name: 'role',
-//         description: 'The role to add',
-//         required: false, // Optional
-//       },
-//     ],
-//   },
-//   {
-//     name: 'remove-user',
-//     description: 'Remove a user or role from a specific channel',
-//     options: [
-//       {
-//         type: 7, // CHANNEL type
-//         name: 'channel',
-//         description: 'The channel to remove from',
-//         required: true, // Required
-//       },
-//       {
-//         type: 6, // USER type
-//         name: 'usr',
-//         description: 'The user to remove (ID or @mention)',
-//         required: false, // Optional
-//       },
-//       {
-//         type: 8, // ROLE type
-//         name: 'role',
-//         description: 'The role to remove',
-//         required: false, // Optional
-//       },
-//     ],
-//   },
-//   {
-//     name: 'remove-user-all',
-//     description: 'Remove a user from all channels in the server',
-//     options: [
-//       {
-//         type: 6, // USER type
-//         name: 'usr',
-//         description: 'The user to remove (ID or @mention)',
-//         required: true, // Required
-//       },
-//     ],
-//   },
-// ];
-
-// const rest = new REST({ version: '9' }).setToken(TOKEN);
-
-// // Register the slash commands globally
-// (async () => {
-//   try {
-//     console.log('Started refreshing application (/) commands.');
-//     await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
-//     console.log('Successfully reloaded application (/) commands.');
-//   } catch (error) {
-//     console.error('Error registering commands:', error);
-//   }
-// })();
-
-// // When the bot is ready
-// client.once('ready', () => {
-//   console.log(`Logged in as ${client.user.tag}!`);
-// });
-
-// // Command handling
-// client.on('interactionCreate', async (interaction) => {
-//   if (!interaction.isCommand()) return;
-
-//   const { commandName } = interaction;
-
-//   if (commandName === 'add-user') {
-//     const user = interaction.options.getUser('usr');
-//     const role = interaction.options.getRole('role');
-//     const guild = interaction.guild;
-//     const channels = guild.channels.cache;
-
-//     let i = 0;
-//     try {
-//       channels.forEach(async (channel) => {
-//         setTimeout(async () => {
-//           try {
-//             // Add user permissions
-//             if (user) {
-//               await channel.permissionOverwrites.edit(user, {
-//                 [PermissionsBitField.Flags.ViewChannel]: true,
-//                 [PermissionsBitField.Flags.SendMessages]: true,
-//               });
-//             }
-
-//             // Add role permissions
-//             if (role) {
-//               await channel.permissionOverwrites.edit(role, {
-//                 [PermissionsBitField.Flags.ViewChannel]: true,
-//                 [PermissionsBitField.Flags.SendMessages]: true,
-//               });
-//             }
-//           } catch (error) {
-//             console.error(`Error adding to channel ${channel.name}:`, error);
-//           }
-//         }, i * 1000); // Add delay between channel permission edits
-//         i++;
-//       });
-
-//       await interaction.reply(`User ${user.tag} and role ${role ? role.name : 'N/A'} have been successfully added to all channels.`);
-//     } catch (error) {
-//       console.error('Error adding user or role to channels:', error);
-//       await interaction.reply('There was an error while trying to add the user or role to all channels.');
-//     }
-//   } else if (commandName === 'remove-user') {
-//     const user = interaction.options.getUser('usr');
-//     const role = interaction.options.getRole('role');
-//     const channel = interaction.options.getChannel('channel');
-
-//     if (!channel) {
-//       await interaction.reply('Please provide a valid channel.');
-//       return;
-//     }
-
-//     try {
-//       if (user) {
-//         await channel.permissionOverwrites.delete(user);
-//       }
-
-//       if (role) {
-//         await channel.permissionOverwrites.delete(role);
-//       }
-
-//       await interaction.reply(`User ${user ? user.tag : 'N/A'} and role ${role ? role.name : 'N/A'} have been successfully removed from channel: ${channel.name} (ID: ${channel.id}).`);
-//     } catch (error) {
-//       console.error('Error removing user or role from the channel:', error);
-//       await interaction.reply('There was an error while trying to remove the user or role from the channel.');
-//     }
-//   } else if (commandName === 'remove-user-all') {
-//     const user = interaction.options.getUser('usr');
-//     const guild = interaction.guild;
-//     const channels = guild.channels.cache;
-
-//     let i = 0;
-//     try {
-//       channels.forEach(async (channel) => {
-//         setTimeout(async () => {
-//           try {
-//             await channel.permissionOverwrites.delete(user);
-//           } catch (error) {
-//             console.error(`Error removing user from channel ${channel.name}:`, error);
-//           }
-//         }, i * 1000); // Add delay between channel permission deletions
-//         i++;
-//       });
-
-//       await interaction.reply(`User ${user.tag} has been successfully removed from all channels.`);
-//     } catch (error) {
-//       console.error('Error removing user from all channels:', error);
-//       await interaction.reply('There was an error while trying to remove the user from all channels.');
-//     }
-//   }
-// });
-
-// // Login to Discord with your bot's token
-// client.login(TOKEN);
-const express = require('express');
 const { Client, GatewayIntentBits, PermissionsBitField } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
+const express = require('express');
 require('dotenv').config();
 
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
 const PORT = process.env.PORT || 3000;
 
+// Initialize Express app for keeping the bot alive
 const app = express();
-app.use(express.json()); // For parsing application/json
 
-// Initialize Discord client
+// Initialize Discord client with necessary intents
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -375,7 +21,7 @@ const client = new Client({
   ],
 });
 
-// Register slash commands globally
+// Define slash commands
 const commands = [
   {
     name: 'add-user',
@@ -385,13 +31,13 @@ const commands = [
         type: 6, // USER type
         name: 'usr',
         description: 'The user to add (ID or @mention)',
-        required: true, // Required
+        required: false,
       },
       {
         type: 8, // ROLE type
         name: 'role',
         description: 'The role to add',
-        required: false, // Optional
+        required: false,
       },
     ],
   },
@@ -403,19 +49,19 @@ const commands = [
         type: 7, // CHANNEL type
         name: 'channel',
         description: 'The channel to remove from',
-        required: true, // Required
+        required: true,
       },
       {
         type: 6, // USER type
         name: 'usr',
         description: 'The user to remove (ID or @mention)',
-        required: false, // Optional
+        required: false,
       },
       {
         type: 8, // ROLE type
         name: 'role',
         description: 'The role to remove',
-        required: false, // Optional
+        required: false,
       },
     ],
   },
@@ -427,357 +73,196 @@ const commands = [
         type: 6, // USER type
         name: 'usr',
         description: 'The user to remove (ID or @mention)',
-        required: true, // Required
+        required: true,
       },
     ],
   },
 ];
 
-// Register the slash commands globally
+// Initialize REST API for registering slash commands
 const rest = new REST({ version: '9' }).setToken(TOKEN);
-(async () => {
+
+// Register slash commands when bot starts
+client.once('ready', async () => {
+  console.log(`Logged in as ${client.user.tag}!`);
+
+  // Register commands for each guild the bot is in
   try {
     console.log('Started refreshing application (/) commands.');
-    await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
-    console.log('Successfully reloaded application (/) commands.');
+
+    // For each guild the bot is in
+    client.guilds.cache.forEach(async (guild) => {
+      try {
+        await rest.put(
+          Routes.applicationGuildCommands(CLIENT_ID, guild.id),
+          { body: commands }
+        );
+        console.log(`Registered commands for guild: ${guild.name}`);
+      } catch (err) {
+        console.error(`Error registering commands for guild ${guild.name}:`, err);
+      }
+    });
+
+    console.log('Successfully refreshed application commands.');
   } catch (error) {
     console.error('Error registering commands:', error);
   }
-})();
 
-// Handle interactions via Express route
-app.post('/interactions', async (req, res) => {
-  const { type, token, data, guild_id, user } = req.body;
+  // Start Express server after bot is ready
+  app.listen(PORT, () => {
+    console.log(`Express server running on port ${PORT}`);
+  });
+});
 
-  if (type === 1) {
-    // Respond to Discord's initial verification challenge
-    return res.send({ type: 1 });
-  }
+// Command handling
+client.on('interactionCreate', async (interaction) => {
+  // Ignore non-command interactions
+  if (!interaction.isCommand()) return;
 
-  if (type === 4) {
-    const commandName = data.name;
+  // Acknowledge the interaction immediately to prevent "Bot is not responding" errors
+  await interaction.deferReply();
 
-    try {
-      if (commandName === 'add-user') {
-        // Handle add-user command
-        const userToAdd = data.options.find(opt => opt.name === 'usr').value;
-        const roleToAdd = data.options.find(opt => opt.name === 'role')?.value;
-        const guild = client.guilds.cache.get(guild_id);
-        const channels = guild.channels.cache;
+  const { commandName } = interaction;
 
-        let i = 0;
-        channels.forEach(async (channel) => {
-          setTimeout(async () => {
-            try {
-              // Add user permissions
-              if (userToAdd) {
-                await channel.permissionOverwrites.edit(userToAdd, {
-                  [PermissionsBitField.Flags.ViewChannel]: true,
-                  [PermissionsBitField.Flags.SendMessages]: true,
-                });
-              }
+  try {
+    if (commandName === 'add-user') {
+      const user = interaction.options.getUser('usr');
+      const role = interaction.options.getRole('role');
 
-              // Add role permissions
-              if (roleToAdd) {
-                await channel.permissionOverwrites.edit(roleToAdd, {
-                  [PermissionsBitField.Flags.ViewChannel]: true,
-                  [PermissionsBitField.Flags.SendMessages]: true,
-                });
-              }
-            } catch (error) {
-              console.error(`Error adding to channel ${channel.name}:`, error);
-            }
-          }, i * 1000); // Add delay between channel permission edits
-          i++;
-        });
-
-        return res.json({
-          type: 4,
-          data: {
-            content: `User and role have been successfully added to all channels.`,
-          },
-        });
-      } else if (commandName === 'remove-user') {
-        const channel = data.options.find(opt => opt.name === 'channel')?.value;
-        const userToRemove = data.options.find(opt => opt.name === 'usr')?.value;
-        const roleToRemove = data.options.find(opt => opt.name === 'role')?.value;
-
-        const guild = client.guilds.cache.get(guild_id);
-        const targetChannel = guild.channels.cache.get(channel);
-
-        if (!targetChannel) {
-          return res.json({
-            type: 4,
-            data: {
-              content: 'Please provide a valid channel.',
-            },
-          });
-        }
-
-        try {
-          if (userToRemove) {
-            await targetChannel.permissionOverwrites.delete(userToRemove);
-          }
-
-          if (roleToRemove) {
-            await targetChannel.permissionOverwrites.delete(roleToRemove);
-          }
-
-          return res.json({
-            type: 4,
-            data: {
-              content: `User and role have been successfully removed from channel: ${targetChannel.name}.`,
-            },
-          });
-        } catch (error) {
-          console.error('Error removing user or role from the channel:', error);
-          return res.json({
-            type: 4,
-            data: {
-              content: 'There was an error while trying to remove the user or role from the channel.',
-            },
-          });
-        }
-      } else if (commandName === 'remove-user-all') {
-        const userToRemove = data.options.find(opt => opt.name === 'usr').value;
-        const guild = client.guilds.cache.get(guild_id);
-        const channels = guild.channels.cache;
-
-        let i = 0;
-        channels.forEach(async (channel) => {
-          setTimeout(async () => {
-            try {
-              await channel.permissionOverwrites.delete(userToRemove);
-            } catch (error) {
-              console.error(`Error removing user from channel ${channel.name}:`, error);
-            }
-          }, i * 1000); // Add delay between channel permission deletions
-          i++;
-        });
-
-        return res.json({
-          type: 4,
-          data: {
-            content: `User has been successfully removed from all channels.`,
-          },
-        });
+      // Check if at least one option is provided
+      if (!user && !role) {
+        return await interaction.editReply('You must provide either a user or a role to add.');
       }
-    } catch (error) {
-      console.error('Error handling command:', error);
-      return res.json({
-        type: 4,
-        data: {
-          content: 'There was an error while executing the command.',
-        },
-      });
+
+      const guild = interaction.guild;
+      const channels = guild.channels.cache;
+
+      // Process each channel with a delay to avoid rate limits
+      for (const channel of channels.values()) {
+        try {
+          // Add user permissions
+          if (user) {
+            if (channel.isTextBased()) {
+              await channel.permissionOverwrites.edit(user, {
+                [PermissionsBitField.Flags.ViewChannel]: true,
+                [PermissionsBitField.Flags.SendMessages]: true,
+              });
+            } else if (channel.isVoiceBased()) {
+              await channel.permissionOverwrites.edit(user, {
+                [PermissionsBitField.Flags.ViewChannel]: true,
+                [PermissionsBitField.Flags.Connect]: true,
+                [PermissionsBitField.Flags.Speak]: true,
+              });
+            } else if (channel.type === 15) { // Forum channels
+              await channel.permissionOverwrites.edit(user, {
+                [PermissionsBitField.Flags.ViewChannel]: true,
+                [PermissionsBitField.Flags.SendMessagesInThreads]: true,
+              });
+            }
+          }
+
+          // Add role permissions
+          if (role) {
+            if (channel.isTextBased()) {
+              await channel.permissionOverwrites.edit(role, {
+                [PermissionsBitField.Flags.ViewChannel]: true,
+                [PermissionsBitField.Flags.SendMessages]: true,
+              });
+            } else if (channel.isVoiceBased()) {
+              await channel.permissionOverwrites.edit(role, {
+                [PermissionsBitField.Flags.ViewChannel]: true,
+                [PermissionsBitField.Flags.Connect]: true,
+                [PermissionsBitField.Flags.Speak]: true,
+              });
+            } else if (channel.type === 15) { // Forum channels
+              await channel.permissionOverwrites.edit(role, {
+                [PermissionsBitField.Flags.ViewChannel]: true,
+                [PermissionsBitField.Flags.SendMessagesInThreads]: true,
+              });
+            }
+          }
+
+          // Small delay to avoid hitting rate limits
+          await new Promise(resolve => setTimeout(resolve, 300));
+        } catch (error) {
+          console.error(`Error adding permissions to channel ${channel.name}:`, error);
+        }
+      }
+
+      // Complete the response
+      await interaction.editReply(`Successfully added permissions to all channels for ${user ? `user ${user.tag}` : ''}${user && role ? ' and ' : ''}${role ? `role ${role.name}` : ''}.`);
+
+    } else if (commandName === 'remove-user') {
+      const user = interaction.options.getUser('usr');
+      const role = interaction.options.getRole('role');
+      const channel = interaction.options.getChannel('channel');
+
+      // Check if at least one option is provided
+      if (!user && !role) {
+        return await interaction.editReply('You must provide either a user or a role to remove.');
+      }
+
+      try {
+        if (user) {
+          await channel.permissionOverwrites.delete(user);
+        }
+
+        if (role) {
+          await channel.permissionOverwrites.delete(role);
+        }
+
+        await interaction.editReply(`Successfully removed permissions from channel ${channel.name} for ${user ? `user ${user.tag}` : ''}${user && role ? ' and ' : ''}${role ? `role ${role.name}` : ''}.`);
+      } catch (error) {
+        console.error('Error removing permissions:', error);
+        await interaction.editReply('There was an error removing permissions. Make sure I have the necessary permissions to manage channel permissions.');
+      }
+
+    } else if (commandName === 'remove-user-all') {
+      const user = interaction.options.getUser('usr');
+      const guild = interaction.guild;
+      const channels = guild.channels.cache;
+
+      if (!user) {
+        return await interaction.editReply('You must provide a user to remove from all channels.');
+      }
+
+      // Process each channel with a delay to avoid rate limits
+      for (const channel of channels.values()) {
+        try {
+          await channel.permissionOverwrites.delete(user);
+
+          // Small delay to avoid hitting rate limits
+          await new Promise(resolve => setTimeout(resolve, 300));
+        } catch (error) {
+          console.error(`Error removing user from channel ${channel.name}:`, error);
+        }
+      }
+
+      await interaction.editReply(`Successfully removed permissions for user ${user.tag} from all channels.`);
+    }
+  } catch (error) {
+    console.error('Error handling command:', error);
+    // Make sure we respond even if there's an error
+    if (interaction.deferred && !interaction.replied) {
+      await interaction.editReply('There was an error executing the command. Please check the bot permissions and try again.');
     }
   }
 });
 
-// Start Express server
-client.once('ready', () => {
-  console.log(`Logged in as ${client.user.tag}!`);
-  app.listen(PORT, () => {
-    console.log(`Express server is running on http://localhost:${PORT}`);
-  });
-});
-
+// Express routes for keeping the bot alive on hosting platforms
 app.get('/', (req, res) => {
-  res.send('Hello, the bot is running and ready to handle interactions!');
+  res.send('Bot is running!');
 });
 
-// Login to Discord with your bot's token
-client.login(TOKEN);
+// Error handling
+client.on('error', (error) => {
+  console.error('Discord client error:', error);
+});
 
+process.on('unhandledRejection', (error) => {
+  console.error('Unhandled promise rejection:', error);
+});
 
-
-// const { Client, GatewayIntentBits, PermissionsBitField } = require('discord.js');
-// const { REST } = require('@discordjs/rest');
-// const { Routes } = require('discord-api-types/v9');
-// require('dotenv').config();
-
-// const TOKEN = process.env.TOKEN;
-// const CLIENT_ID = process.env.CLIENT_ID;
-
-// const client = new Client({
-//   intents: [
-//     GatewayIntentBits.Guilds,
-//     GatewayIntentBits.GuildMembers,
-//     GatewayIntentBits.GuildMessages,
-//     GatewayIntentBits.GuildMessageReactions,
-//   ],
-// });
-
-// // Register the slash commands globally
-// const commands = [
-//   {
-//     name: 'add-user',
-//     description: 'Add a user or role to all channels in the server',
-//     options: [
-//       {
-//         type: 6, // USER type
-//         name: 'usr',
-//         description: 'The user to add (ID or @mention)',
-//         required: true, // Required
-//       },
-//       {
-//         type: 8, // ROLE type
-//         name: 'role',
-//         description: 'The role to add',
-//         required: false, // Optional
-//       },
-//     ],
-//   },
-//   {
-//     name: 'remove-user',
-//     description: 'Remove a user or role from a specific channel',
-//     options: [
-//       {
-//         type: 6, // USER type
-//         name: 'usr',
-//         description: 'The user to remove (ID or @mention)',
-//         required: false, // Optional
-//       },
-//       {
-//         type: 8, // ROLE type
-//         name: 'role',
-//         description: 'The role to remove',
-//         required: false, // Optional
-//       },
-//       {
-//         type: 7, // CHANNEL type
-//         name: 'channel',
-//         description: 'The channel to remove from',
-//         required: true,
-//       },
-//     ],
-//   },
-//   {
-//     name: 'remove-user-all',
-//     description: 'Remove a user from all channels in the server',
-//     options: [
-//       {
-//         type: 6, // USER type
-//         name: 'usr',
-//         description: 'The user to remove (ID or @mention)',
-//         required: true,
-//       },
-//     ],
-//   },
-// ];
-
-// const rest = new REST({ version: '9' }).setToken(TOKEN);
-
-// // Register the slash commands globally
-// (async () => {
-//   try {
-//     console.log('Started refreshing application (/) commands.');
-//     await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
-//     console.log('Successfully reloaded application (/) commands.');
-//   } catch (error) {
-//     console.error('Error registering commands:', error);
-//   }
-// })();
-
-// // When the bot is ready
-// client.once('ready', () => {
-//   console.log(`Logged in as ${client.user.tag}!`);
-// });
-
-// // Command handling
-// client.on('interactionCreate', async (interaction) => {
-//   if (!interaction.isCommand()) return;
-
-//   const { commandName } = interaction;
-
-//   if (commandName === 'add-user') {
-//     const user = interaction.options.getUser('usr');
-//     const role = interaction.options.getRole('role');
-//     const guild = interaction.guild;
-//     const channels = guild.channels.cache;
-
-//     let i = 0;
-//     try {
-//       channels.forEach(async (channel) => {
-//         setTimeout(async () => {
-//           try {
-//             // Add user permissions
-//             if (user) {
-//               await channel.permissionOverwrites.edit(user, {
-//                 [PermissionsBitField.Flags.ViewChannel]: true,
-//                 [PermissionsBitField.Flags.SendMessages]: true,
-//               });
-//             }
-
-//             // Add role permissions
-//             if (role) {
-//               await channel.permissionOverwrites.edit(role, {
-//                 [PermissionsBitField.Flags.ViewChannel]: true,
-//                 [PermissionsBitField.Flags.SendMessages]: true,
-//               });
-//             }
-//           } catch (error) {
-//             console.error(`Error adding to channel ${channel.name}:`, error);
-//           }
-//         }, i * 1000); // Add delay between channel permission edits
-//         i++;
-//       });
-
-//       await interaction.reply(`User ${user.tag} and role ${role ? role.name : 'N/A'} have been successfully added to all channels.`);
-//     } catch (error) {
-//       console.error('Error adding user or role to channels:', error);
-//       await interaction.reply('There was an error while trying to add the user or role to all channels.');
-//     }
-//   } else if (commandName === 'remove-user') {
-//     const user = interaction.options.getUser('usr');
-//     const role = interaction.options.getRole('role');
-//     const channel = interaction.options.getChannel('channel');
-
-//     if (!channel) {
-//       await interaction.reply('Please provide a valid channel.');
-//       return;
-//     }
-
-//     try {
-//       if (user) {
-//         await channel.permissionOverwrites.delete(user);
-//       }
-
-//       if (role) {
-//         await channel.permissionOverwrites.delete(role);
-//       }
-
-//       await interaction.reply(`User ${user ? user.tag : 'N/A'} and role ${role ? role.name : 'N/A'} have been successfully removed from channel: ${channel.name} (ID: ${channel.id}).`);
-//     } catch (error) {
-//       console.error('Error removing user or role from the channel:', error);
-//       await interaction.reply('There was an error while trying to remove the user or role from the channel.');
-//     }
-//   } else if (commandName === 'remove-user-all') {
-//     const user = interaction.options.getUser('usr');
-//     const guild = interaction.guild;
-//     const channels = guild.channels.cache;
-
-//     let i = 0;
-//     try {
-//       channels.forEach(async (channel) => {
-//         setTimeout(async () => {
-//           try {
-//             await channel.permissionOverwrites.delete(user);
-//           } catch (error) {
-//             console.error(`Error removing user from channel ${channel.name}:`, error);
-//           }
-//         }, i * 1000); // Add delay between channel permission deletions
-//         i++;
-//       });
-
-//       await interaction.reply(`User ${user.tag} has been successfully removed from all channels.`);
-//     } catch (error) {
-//       console.error('Error removing user from all channels:', error);
-//       await interaction.reply('There was an error while trying to remove the user from all channels.');
-//     }
-//   }
-// });
-
-// // Login to Discord with your bot's token
-// client.login(TOKEN);
+// Login to Discord with the bot token
+client.login(TOKEN).catch(console.error);
 
